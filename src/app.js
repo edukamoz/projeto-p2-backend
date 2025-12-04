@@ -1,13 +1,12 @@
-// src/app.js - Aplicação Express com vulnerabilidades intencionais para SAST
-
-const express = require('express');
-const mysql = require('mysql');
-const crypto = require('crypto');
-const { exec } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
+require("dotenv").config();
+const express = require("express");
+const mysql = require("mysql2");
+const crypto = require("crypto");
+const { exec } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+const swaggerUi = require("swagger-ui-express");
+const swaggerJsdoc = require("swagger-jsdoc");
 
 const app = express();
 app.use(express.json());
@@ -16,74 +15,99 @@ app.use(express.urlencoded({ extended: true }));
 // Configuração do Swagger
 const swaggerOptions = {
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'Vulnerable API - SAST Demo',
-      version: '1.0.0',
-      description: 'API vulnerável para demonstração de ferramentas SAST. **NÃO USE EM PRODUÇÃO!**',
+      title: "Vulnerable API - SAST Demo",
+      version: "1.0.0",
+      description:
+        "API vulnerável para demonstração de ferramentas SAST. **NÃO USE EM PRODUÇÃO!**",
       contact: {
-        name: 'Security Testing Team',
-        email: 'security@example.com'
-      }
+        name: "Security Testing Team",
+        email: "security@example.com",
+      },
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Development server'
-      }
+        url: "http://localhost:3000",
+        description: "Development server",
+      },
     ],
     tags: [
       {
-        name: 'SQL Injection',
-        description: 'Endpoints vulneráveis a SQL Injection'
+        name: "SQL Injection",
+        description: "Endpoints vulneráveis a SQL Injection",
       },
       {
-        name: 'Command Injection',
-        description: 'Endpoints vulneráveis a Command Injection'
+        name: "Command Injection",
+        description: "Endpoints vulneráveis a Command Injection",
       },
       {
-        name: 'XSS',
-        description: 'Endpoints vulneráveis a Cross-Site Scripting'
+        name: "XSS",
+        description: "Endpoints vulneráveis a Cross-Site Scripting",
       },
       {
-        name: 'SSRF',
-        description: 'Endpoints vulneráveis a Server-Side Request Forgery'
+        name: "SSRF",
+        description: "Endpoints vulneráveis a Server-Side Request Forgery",
       },
       {
-        name: 'Code Injection',
-        description: 'Endpoints vulneráveis a Code Injection'
+        name: "Code Injection",
+        description: "Endpoints vulneráveis a Code Injection",
       },
       {
-        name: 'File Operations',
-        description: 'Endpoints com vulnerabilidades em operações de arquivo'
+        name: "File Operations",
+        description: "Endpoints com vulnerabilidades em operações de arquivo",
       },
       {
-        name: 'Cryptography',
-        description: 'Endpoints com criptografia fraca'
+        name: "Cryptography",
+        description: "Endpoints com criptografia fraca",
       },
       {
-        name: 'Other',
-        description: 'Outras vulnerabilidades'
-      }
-    ]
+        name: "Other",
+        description: "Outras vulnerabilidades",
+      },
+    ],
   },
-  apis: ['./src/app.js']
+  apis: ["./src/app.js"],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // VULNERABILIDADE 1: Credenciais hardcoded
-const DB_PASSWORD = 'SuperSecret123!';
-const API_KEY = 'sk_live_51234567890abcdef';
-const JWT_SECRET = 'my-secret-key';
+const DB_PASSWORD = "SuperSecret123!";
+const API_KEY = "sk_live_51234567890abcdef";
+const JWT_SECRET = "my-secret-key";
 
-// VULNERABILIDADE 2: Conexão MySQL sem validação
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: DB_PASSWORD,
-  database: 'vulnerable_db'
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+
+db.connect((err) => {
+  if (err) {
+    console.error("Erro ao conectar no banco:", err);
+  } else {
+    console.log("Conectado ao banco de dados MySQL na nuvem!");
+
+    // Cria tabela users se não existir
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(255),
+        password VARCHAR(255)
+      )
+    `;
+    db.query(createTableQuery, (err) => {
+      if (err) console.error("Erro tabela:", err);
+      else console.log("Tabela users pronta.");
+    });
+  }
 });
 
 // VULNERABILIDADE 3: SQL Injection
@@ -113,10 +137,10 @@ const db = mysql.createConnection({
  *       500:
  *         description: Erro no servidor
  */
-app.get('/users/:id', (req, res) => {
+app.get("/users/:id", (req, res) => {
   const userId = req.params.id;
   const query = `SELECT * FROM users WHERE id = ${userId}`;
-  
+
   db.query(query, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
@@ -141,9 +165,9 @@ app.get('/users/:id', (req, res) => {
  *       500:
  *         description: Erro no servidor
  */
-app.get('/users', (req, res) => {
+app.get("/users", (req, res) => {
   const query = `SELECT * FROM users`;
-  
+
   db.query(query, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
@@ -174,7 +198,7 @@ app.get('/users', (req, res) => {
  *       500:
  *         description: Erro na execução
  */
-app.post('/execute', (req, res) => {
+app.post("/execute", (req, res) => {
   const command = req.body.command;
   exec(`ls ${command}`, (error, stdout, stderr) => {
     if (error) {
@@ -205,10 +229,10 @@ app.post('/execute', (req, res) => {
  *       404:
  *         description: Arquivo não encontrado
  */
-app.get('/download', (req, res) => {
+app.get("/download", (req, res) => {
   const filename = req.query.file;
-  const filepath = path.join(__dirname, 'files', filename);
-  
+  const filepath = path.join(__dirname, "files", filename);
+
   res.sendFile(filepath);
 });
 
@@ -235,7 +259,7 @@ app.get('/download', (req, res) => {
  *             schema:
  *               type: string
  */
-app.get('/search', (req, res) => {
+app.get("/search", (req, res) => {
   const searchTerm = req.query.q;
   const html = `
     <html>
@@ -276,12 +300,15 @@ app.get('/search', (req, res) => {
  *                 encrypted:
  *                   type: string
  */
-app.post('/encrypt', (req, res) => {
+app.post("/encrypt", (req, res) => {
   const data = req.body.data;
   // Vulnerabilidade: MD5 é fraco, chave hardcoded, sem salt
-  const weakKey = 'weak-key-12345';
-  const encrypted = crypto.createHash('md5').update(data + weakKey).digest('hex');
-  res.json({ encrypted, algorithm: 'md5', key: weakKey });
+  const weakKey = "weak-key-12345";
+  const encrypted = crypto
+    .createHash("md5")
+    .update(data + weakKey)
+    .digest("hex");
+  res.json({ encrypted, algorithm: "md5", key: weakKey });
 });
 
 // VULNERABILIDADE 8: Ausência de rate limiting
@@ -310,16 +337,16 @@ app.post('/encrypt', (req, res) => {
  *       401:
  *         description: Credenciais inválidas
  */
-app.post('/login', (req, res) => {
+app.post("/login", (req, res) => {
   const { username, password } = req.body;
-  
+
   const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
-  
+
   db.query(query, (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
-    
+
     if (results.length > 0) {
-      res.json({ success: true, token: 'fake-jwt-token' });
+      res.json({ success: true, token: "fake-jwt-token" });
     } else {
       res.status(401).json({ success: false });
     }
@@ -328,9 +355,9 @@ app.post('/login', (req, res) => {
 
 // VULNERABILIDADE 9: Exposição de informações sensíveis em logs
 app.use((err, req, res, next) => {
-  console.log('Error details:', err.stack);
-  console.log('Request body:', req.body);
-  console.log('Database password:', DB_PASSWORD);
+  console.log("Error details:", err.stack);
+  console.log("Request body:", req.body);
+  console.log("Database password:", DB_PASSWORD);
   res.status(500).json({ error: err.message, stack: err.stack });
 });
 
@@ -355,15 +382,17 @@ app.use((err, req, res, next) => {
  *       500:
  *         description: Erro ao buscar URL
  */
-app.get('/fetch-url', (req, res) => {
+app.get("/fetch-url", (req, res) => {
   const url = req.query.url;
-  const http = require('http');
-  
-  http.get(url, (response) => {
-    let data = '';
-    response.on('data', chunk => data += chunk);
-    response.on('end', () => res.send(data));
-  }).on('error', err => res.status(500).json({ error: err.message }));
+  const http = require("http");
+
+  http
+    .get(url, (response) => {
+      let data = "";
+      response.on("data", (chunk) => (data += chunk));
+      response.on("end", () => res.send(data));
+    })
+    .on("error", (err) => res.status(500).json({ error: err.message }));
 });
 
 // VULNERABILIDADE 11: Uso de eval()
@@ -395,7 +424,7 @@ app.get('/fetch-url', (req, res) => {
  *                 result:
  *                   type: string
  */
-app.post('/calculate', (req, res) => {
+app.post("/calculate", (req, res) => {
   const expression = req.body.expression;
   const result = eval(expression);
   res.json({ result });
@@ -427,9 +456,10 @@ app.post('/calculate', (req, res) => {
  *                 valid:
  *                   type: boolean
  */
-app.get('/validate-email', (req, res) => {
+app.get("/validate-email", (req, res) => {
   const email = req.query.email;
-  const regex = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+  const regex =
+    /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
   const isValid = regex.test(email);
   res.json({ valid: isValid });
 });
@@ -452,7 +482,7 @@ app.get('/validate-email', (req, res) => {
  *                 token:
  *                   type: string
  */
-app.get('/generate-token', (req, res) => {
+app.get("/generate-token", (req, res) => {
   const token = Math.random().toString(36).substring(7);
   res.json({ token });
 });
@@ -477,13 +507,13 @@ app.get('/generate-token', (req, res) => {
  *       200:
  *         description: Objeto mesclado
  */
-app.post('/merge', (req, res) => {
+app.post("/merge", (req, res) => {
   const target = {};
   const source = req.body;
-  
+
   function merge(target, source) {
     for (let key in source) {
-      if (typeof source[key] === 'object') {
+      if (typeof source[key] === "object") {
         target[key] = merge(target[key] || {}, source[key]);
       } else {
         target[key] = source[key];
@@ -491,7 +521,7 @@ app.post('/merge', (req, res) => {
     }
     return target;
   }
-  
+
   const result = merge(target, source);
   res.json(result);
 });
@@ -519,12 +549,12 @@ app.post('/merge', (req, res) => {
  *       400:
  *         description: Erro ao parsear XML
  */
-app.post('/parse-xml', (req, res) => {
-  const xml2js = require('xml2js');
+app.post("/parse-xml", (req, res) => {
+  const xml2js = require("xml2js");
   const parser = new xml2js.Parser({
-    explicitArray: false
+    explicitArray: false,
   });
-  
+
   parser.parseString(req.body.xml, (err, result) => {
     if (err) return res.status(400).json({ error: err.message });
     res.json(result);
@@ -555,11 +585,11 @@ app.post('/parse-xml', (req, res) => {
  *       200:
  *         description: Arquivo enviado com sucesso
  */
-app.post('/upload', (req, res) => {
+app.post("/upload", (req, res) => {
   const filename = req.body.filename;
   const content = req.body.content;
-  
-  fs.writeFileSync(path.join(__dirname, 'uploads', filename), content);
+
+  fs.writeFileSync(path.join(__dirname, "uploads", filename), content);
   res.json({ success: true, path: filename });
 });
 
@@ -595,10 +625,10 @@ app.post('/upload', (req, res) => {
  *       500:
  *         description: Erro ao criar usuário
  */
-app.post('/users', (req, res) => {
+app.post("/users", (req, res) => {
   const newUser = req.body;
   const query = `INSERT INTO users SET ?`;
-  
+
   db.query(query, newUser, (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ id: result.insertId, ...newUser });
@@ -633,10 +663,10 @@ app.post('/users', (req, res) => {
  *                 valid:
  *                   type: boolean
  */
-app.post('/verify-token', (req, res) => {
+app.post("/verify-token", (req, res) => {
   const token = req.body.token;
-  const validToken = 'super-secret-token-12345';
-  
+  const validToken = "super-secret-token-12345";
+
   if (token === validToken) {
     res.json({ valid: true });
   } else {
@@ -654,11 +684,12 @@ app.post('/verify-token', (req, res) => {
  *       200:
  *         description: Mensagem de boas-vindas
  */
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.json({
-    message: 'Vulnerable API - SAST Demo',
-    documentation: '/api-docs',
-    warning: '⚠️ Esta API contém vulnerabilidades intencionais. NÃO USE EM PRODUÇÃO!'
+    message: "Vulnerable API - SAST Demo",
+    documentation: "/api-docs",
+    warning:
+      "⚠️ Esta API contém vulnerabilidades intencionais. NÃO USE EM PRODUÇÃO!",
   });
 });
 
