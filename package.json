@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/app.js",
     "test": "mocha tests/**/*.test.js --timeout 10000 --exit",
+    "docker:build": "docker build -t teste-local .",
     "test:coverage": "nyc --reporter=html --reporter=text --reporter=lcov --reporter=json mocha tests/**/*.test.js --timeout 10000 --exit",
     "test:watch": "mocha tests/**/*.test.js --watch",
     "coverage:check": "nyc check-coverage --lines 70 --functions 70 --branches 60 --statements 70",
