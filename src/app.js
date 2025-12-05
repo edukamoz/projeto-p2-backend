@@ -690,7 +690,7 @@ app.post("/verify-token", (req, res) => {
  */
 app.get("/", (req, res) => {
   res.json({
-    message: "API Enterprise Edition v1.0 - Release Oficial via CI/CD! 🏆",
+    message: "TRABALHO REALIZADO COM SUCESSO!",
     status: "Online",
     documentation: "/api-docs",
     warning:
