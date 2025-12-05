@@ -690,7 +690,7 @@ app.post("/verify-token", (req, res) => {
  */
 app.get("/", (req, res) => {
   res.json({
-    message: "Vulnerable API - SAST Demo - VERSÃO FINAL P2 ENTREGUE! 🚀",
+    message: "API v2.0 - Deploy via Merge Develop->Main! 🚀",
     status: "Online",
     documentation: "/api-docs",
     warning:
