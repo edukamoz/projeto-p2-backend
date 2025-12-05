@@ -58,3 +58,7 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/projeto-p2-backend:latest
             ${{ secrets.DOCKER_USERNAME }}/projeto-p2-backend:v${{ github.run_number }}
+
+      - name: Trigger Render Deploy
+        if: success()
+        run: curl "${{ secrets.RENDER_DEPLOY_HOOK }}"

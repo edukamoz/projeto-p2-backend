@@ -28,6 +28,10 @@ const swaggerOptions = {
     },
     servers: [
       {
+        url: "https://projeto-p2-api.onrender.com",
+        description: "Production server",
+      },
+      {
         url: "http://localhost:3000",
         description: "Development server",
       },
@@ -686,7 +690,8 @@ app.post("/verify-token", (req, res) => {
  */
 app.get("/", (req, res) => {
   res.json({
-    message: "Vulnerable API - SAST Demo",
+    message: "Vulnerable API - SAST Demo - VERSÃO FINAL P2 ENTREGUE! 🚀",
+    status: "Online",
     documentation: "/api-docs",
     warning:
       "⚠️ Esta API contém vulnerabilidades intencionais. NÃO USE EM PRODUÇÃO!",
