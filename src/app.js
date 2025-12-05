@@ -690,7 +690,7 @@ app.post("/verify-token", (req, res) => {
  */
 app.get("/", (req, res) => {
   res.json({
-    message: "API v2.0 - Deploy via Merge Develop->Main! 🚀",
+    message: "API Enterprise Edition v1.0 - Release Oficial via CI/CD! 🏆",
     status: "Online",
     documentation: "/api-docs",
     warning:
