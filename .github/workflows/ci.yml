@@ -76,7 +76,7 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/projeto-p2-backend:latest
-            ${{ secrets.DOCKER_USERNAME }}/projeto-p2-backend:v${{ github.run_number }}
+            ${{ secrets.DOCKER_USERNAME }}/projeto-p2-backend:${{ steps.tag_version.outputs.new_tag }}
 
       - name: Trigger Render Deploy
         if: success()
